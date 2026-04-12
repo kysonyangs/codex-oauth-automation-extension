@@ -73,6 +73,36 @@
 4. 选择本项目目录
 5. 打开扩展侧边栏
 
+## 快速开始
+
+如果你只是想先跑通一套最稳的组合，建议直接按下面三种方案之一配置。
+
+### 方案 A：`CPA + QQ / 163 / 163 VIP`
+
+1. `CPA` 填你的管理面板 OAuth 页面地址
+2. `Mail` 选择 `QQ Mail`、`163 Mail` 或 `163 VIP Mail`
+3. `邮箱生成` 选择 `DuckDuckGo` 或 `Cloudflare`
+4. 若你选择 `Cloudflare`，先按下文把 Cloudflare Email Routing 配好
+5. 点击 `获取` 生成邮箱，或手动粘贴一个你能收信的邮箱
+6. 先单步验证 `Step 1 ~ Step 4`
+7. 验证没问题后再点右上角 `Auto`
+
+### 方案 B：`SUB2API + QQ / 163 / 163 VIP`
+
+1. `来源` 选择 `SUB2API`
+2. 填好 `SUB2API` 地址、登录邮箱、登录密码、分组名
+3. `Mail` 与 `邮箱生成` 的配置方式同方案 A
+4. Step 1 会直接在 SUB2API 后台生成 OAuth 链接
+5. Step 9 会把 localhost 回调提交回 SUB2API，并直接创建 OpenAI 账号
+
+### 方案 C：`Hotmail 账号池`
+
+1. `Mail` 选择 `Hotmail`
+2. 在 `Hotmail 账号池` 中添加 `邮箱 / Client ID / Refresh Token`
+3. 先点 `校验`，再点 `测试收信`
+4. 通过后再执行步骤或 `Auto`
+5. 当前项目中，`Mail = Hotmail` 时会直接使用账号池里的邮箱作为注册邮箱，不再走 `Duck / Cloudflare` 自动生成
+
 ## 侧边栏配置说明
 
 ### `CPA`
@@ -87,17 +117,18 @@ Step 1 和 Step 9 都依赖这个地址。
 
 ### `Mail`
 
-支持四种验证码来源：
+支持五种验证码来源：
 
 - `Hotmail`
 - `163 Mail`
+- `163 VIP Mail`
 - `QQ Mail`
 - `Inbucket`
 
 说明：
 
 - `Hotmail` 通过侧边栏里的 Hotmail 账号池选择账号，并直接访问 Microsoft Graph 邮件接口
-- `QQ` 和 `163` 用于直接轮询网页邮箱
+- `QQ`、`163`、`163 VIP` 用于直接轮询网页邮箱
 - `Inbucket` 通过你在侧边栏里配置的 host 访问 `mailbox` 页面：`https://<your-inbucket-host>/m/<mailbox>/`
 
 ### `Hotmail 账号池`
@@ -166,6 +197,8 @@ Step 3 使用的注册邮箱。
 - `CF 域名` 支持保存多个，并通过下拉框切换当前要生成的域名
 - Cloudflare 侧的转发规则、Catch-all、路由目标邮箱等，都需要你自己提前在 Cloudflare 后台配置好
 - 当 `Mail = Hotmail` 时，这个输入框由账号池自动同步当前账号邮箱
+- 当 `Mail = Hotmail` 时，Step 3 会直接使用 Hotmail 账号池里的邮箱；`Duck / Cloudflare` 不参与自动邮箱生成
+- 若你准备走 `Cloudflare`，更推荐把 `Mail` 设为 `QQ / 163 / 163 VIP`；`Inbucket` 仅在它能真实接收外部邮件并完成 Cloudflare 验证时再使用
 - 当前 `Auto` 按钮只负责 DuckDuckGo 地址获取
 - 如果你使用 Inbucket，它只是验证码收件箱，不会自动生成 Inbucket 地址
 
@@ -200,6 +233,61 @@ Cloudflare 模式下，插件不会再调用 Cloudflare API 创建路由。
 - 或者你本来就有一套能覆盖这些随机前缀邮箱的转发规则
 
 否则插件虽然能生成 `@你的域名` 邮箱，但验证码邮件最后没人接收，后面的 Step 4 / Step 7 还是会失败。
+
+#### 推荐搭配
+
+- `Mail = QQ Mail`：Cloudflare 的 `Destination address / Destination addresses` 填你的 QQ 邮箱全地址
+- `Mail = 163 Mail`：Cloudflare 的 `Destination address / Destination addresses` 填你的 163 邮箱全地址
+- `Mail = 163 VIP Mail`：Cloudflare 的 `Destination address / Destination addresses` 填你的 163 VIP 邮箱全地址
+- `Mail = Inbucket`：仅当你的 Inbucket 实例本身就是一个真实可收外部邮件、且能收到 Cloudflare 验证邮件的地址时再使用
+- `Mail = Hotmail`：当前项目的自动流程不推荐和 Cloudflare 同时使用；因为 `Mail = Hotmail` 时，注册邮箱会直接使用 Hotmail 账号池邮箱
+
+#### Cloudflare 后台怎么配（按钮中英对照）
+
+下面按钮名称以 Cloudflare 官方英文界面为准，括号内中文仅用于对照理解，不保证是 Cloudflare 的官方中文翻译。
+
+1. 登录 Cloudflare 后台，选中你要用的域名
+2. 进入 `Email > Email Routing`
+3. 如果这是你第一次给这个域名启用 Email Routing：
+   - 先检查 Cloudflare 准备添加的记录
+   - 点击 `Add records and enable（添加记录并启用）`
+4. 进入 `Routing rules（路由规则）` 或 `Routes（路由）`
+5. 先创建一个固定地址，用来把目标收件箱加进 Cloudflare：
+   - 点击 `Create address（创建地址）`
+   - 在 `Custom address（自定义地址）` 里填一个固定前缀，例如 `cf-init`
+   - 在 `Action（动作）` 中选择 `Send to an email（转发到邮箱）`
+   - 在 `Destination / Destination addresses（目标邮箱）` 中填你真正收验证码的邮箱
+   - 点击 `Save（保存）`
+6. 打开 Cloudflare 发到目标邮箱的验证邮件，依次点击：
+   - `Verify email address（验证邮箱地址）`
+   - `Go to Email Routing（前往 Email Routing）`
+7. 回到 Cloudflare 后台后，确认这个目标邮箱的状态已经变成 `Verified（已验证）`
+8. 如果 Cloudflare 还在首次启用向导里要求继续：
+   - 点击 `Continue（继续）`
+   - 点击 `Add records and finish（添加记录并完成）`
+9. 对于本项目这种“每次都生成随机前缀”的用法，建议再打开：
+   - `Catch-all address（Catch-all 地址）`
+   - 让它显示为 `Active（启用）`
+   - 在 `Action（动作）` 中选择 `Send to an email（转发到邮箱）`
+   - 如果界面要求选择 `Destination（目标邮箱）`，就选你刚刚已经验证通过的那个邮箱
+   - 点击 `Save（保存）`
+10. 最后再回到插件：
+   - `邮箱生成` 选择 `Cloudflare`
+   - 在 `CF 域名` 里点 `添加`
+   - 输入域名后点 `保存`
+   - 点击 `获取`
+
+#### Cloudflare 配好后怎么自测
+
+1. 先在插件里点击 `获取`，拿到一个随机前缀邮箱
+2. 用另一个邮箱给这个地址发一封测试邮件
+3. 不要用目标邮箱给自己发测试邮件，否则某些邮箱服务会把它当成重复邮件直接吞掉
+4. 如果你的 `Mail` 选的是 `QQ / 163 / 163 VIP / Inbucket`，就去对应收件链路里确认这封测试邮件能否到达
+
+#### 官方参考
+
+- Cloudflare Email Routing 启用流程：<https://developers.cloudflare.com/email-routing/get-started/enable-email-routing/>
+- Cloudflare Routing rules / Routes / Catch-all / Destination addresses：<https://developers.cloudflare.com/email-routing/setup/email-routing-addresses/>
 
 #### 最简单的使用方式
 
@@ -516,6 +604,16 @@ sidepanel/                 侧边栏 UI
 - Duck 自动获取依赖 Duck 页面真实 DOM
 - CPA 面板 DOM 也需要和当前脚本选择器匹配
 - `Auto` 按钮名称和 Step 8 的旧文案还未完全统一，但代码行为以实际实现为准
+
+## Star History
+
+<a href="https://www.star-history.com/#QLHazyCoder/codex-oauth-automation-extension&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=QLHazyCoder/codex-oauth-automation-extension&type=Date&theme=dark&legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=QLHazyCoder/codex-oauth-automation-extension&type=Date&legend=top-left" />
+    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=QLHazyCoder/codex-oauth-automation-extension&type=Date&legend=top-left" />
+  </picture>
+</a>
 
 ## 调试建议
 
