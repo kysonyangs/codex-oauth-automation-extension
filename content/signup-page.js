@@ -318,7 +318,7 @@ async function step3_fillEmailPassword(payload) {
 // ============================================================
 
 const INVALID_VERIFICATION_CODE_PATTERN = /代码不正确|验证码不正确|验证码错误|code\s+(?:is\s+)?incorrect|invalid\s+code|incorrect\s+code|try\s+again/i;
-const VERIFICATION_PAGE_PATTERN = /检查您的收件箱|输入我们刚刚向|重新发送电子邮件|重新发送验证码|验证码|代码不正确|email\s+verification/i;
+const VERIFICATION_PAGE_PATTERN = /检查您的收件箱|输入我们刚刚向|重新发送电子邮件|重新发送验证码|代码不正确|email\s+verification|check\s+your\s+inbox|enter\s+the\s+code|we\s+just\s+sent|we\s+emailed|resend/i;
 const OAUTH_CONSENT_PAGE_PATTERN = /使用\s*ChatGPT\s*登录到\s*Codex|sign\s+in\s+to\s+codex(?:\s+with\s+chatgpt)?|login\s+to\s+codex|log\s+in\s+to\s+codex|authorize|授权/i;
 const OAUTH_CONSENT_FORM_SELECTOR = 'form[action*="/sign-in-with-chatgpt/" i][action*="/consent" i]';
 const CONTINUE_ACTION_PATTERN = /继续|continue/i;
@@ -712,7 +712,7 @@ function inspectLoginAuthState() {
     consentReady,
   };
 
-  if (verificationTarget || verificationVisible) {
+  if (verificationTarget) {
     return {
       ...baseState,
       state: 'verification_page',
@@ -751,6 +751,13 @@ function inspectLoginAuthState() {
     return {
       ...baseState,
       state: 'email_page',
+    };
+  }
+
+  if (verificationVisible) {
+    return {
+      ...baseState,
+      state: 'verification_page',
     };
   }
 
